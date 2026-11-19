@@ -39,7 +39,8 @@ npm run test:live
 | 5 | Predictive Intelligence | Forecast ≥12 obs · run saved |
 | 6 | Scenario Simulation Lab | Stress vs baseline chart |
 | 7 | Performance Validation | Holdout MAE/RMSE |
-| 8 | Groq AI Copilot | Question about latest run (needs `GROQ_API_KEY`) |
+| 8 | Predict (+ Groq narrative) | Run forecast, then “Generate model-aligned Groq narrative” (`GROQ_API_KEY`) |
+| 8b | Groq AI Copilot | Free-form question using same prediction CONTEXT |
 | 9 | Governance | Submit → switch role **Reviewer** → Approve |
 | 10 | Reports | Generate brief |
 

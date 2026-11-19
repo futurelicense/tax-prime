@@ -9,6 +9,10 @@ import { holdoutEvaluate } from '~/lib/evaluation'
 import { money, num, uid, now } from '~/lib/format'
 import type { Role, WorkspaceId, WorkspaceState } from '~/lib/types'
 import { logAudit } from '~/hooks/useWorkspace'
+import {
+  PredictionNarrative,
+  saveScenarioNarrative,
+} from '~/components/PredictionNarrative'
 
 type Ctx = {
   space: WorkspaceId
@@ -25,7 +29,15 @@ type Ctx = {
   syncFred: () => Promise<void>
 }
 
-export function ModelSection({ state, role, patch, notify }: Pick<Ctx, 'state' | 'role' | 'patch' | 'notify'>) {
+export function ModelSection({
+  space,
+  state,
+  role,
+  patch,
+  notify,
+  busy,
+  setBusy,
+}: Pick<Ctx, 'space' | 'state' | 'role' | 'patch' | 'notify' | 'busy' | 'setBusy'>) {
   const [name, setName] = useState(state.model.name)
   const [features, setFeatures] = useState(state.model.features)
   const [notes, setNotes] = useState(state.model.notes)
@@ -57,18 +69,37 @@ export function ModelSection({ state, role, patch, notify }: Pick<Ctx, 'state' |
           Receipt variance → aggregate deviation (not individual noncompliance). Revenue shock →
           hypothetical stress only.
         </p>
+        <PredictionNarrative
+          mode="model"
+          space={space}
+          role={role}
+          state={state}
+          busy={busy}
+          setBusy={setBusy}
+          notify={notify}
+          label="Groq: explain model spec for forecast runs"
+          onSaved={(answer) => {
+            patch((s) => {
+              logAudit(s, role, 'Model spec narrative', s.model.version.toString())
+            })
+            notify(answer.slice(0, 120) + (answer.length > 120 ? '…' : ''))
+          }}
+        />
       </Card>
     </>
   )
 }
 
 export function ScenarioSection({
+  space,
   state,
   role,
   patch,
   latest,
   notify,
-}: Pick<Ctx, 'state' | 'role' | 'patch' | 'latest' | 'notify'>) {
+  busy,
+  setBusy,
+}: Pick<Ctx, 'space' | 'state' | 'role' | 'patch' | 'latest' | 'notify' | 'busy' | 'setBusy'>) {
   const [sname, setSname] = useState('Revenue downside')
   const [shock, setShock] = useState(-10)
   const [growth, setGrowth] = useState(2)
@@ -113,6 +144,22 @@ export function ScenarioSection({
           <p className="mt-2">
             Scenario total: <b>{money(sc.values.reduce((a, b) => a + b, 0))}</b>
           </p>
+          {sc.narrative ? (
+            <div className="mt-3 border border-[#e0e6ed] rounded-lg p-3 text-sm whitespace-pre-wrap">
+              <p className="text-xs text-[#64778a] mb-1">Model-aligned narrative · {sc.narrativeAt}</p>
+              {sc.narrative}
+            </div>
+          ) : null}
+          <PredictionNarrative
+            mode="scenario"
+            space={space}
+            role={role}
+            state={state}
+            busy={busy}
+            setBusy={setBusy}
+            notify={notify}
+            onSaved={(answer) => saveScenarioNarrative(patch, role, answer)}
+          />
         </Card>
       ) : null}
     </>
@@ -265,7 +312,15 @@ export function ReportsSection({ state, role, patch, space, notify }: Pick<Ctx, 
   )
 }
 
-export function ValidationSection({ state, role, patch, notify }: Pick<Ctx, 'state' | 'role' | 'patch' | 'notify'>) {
+export function ValidationSection({
+  space,
+  state,
+  role,
+  patch,
+  notify,
+  busy,
+  setBusy,
+}: Pick<Ctx, 'space' | 'state' | 'role' | 'patch' | 'notify' | 'busy' | 'setBusy'>) {
   const ev = state.evaluations[0]
   return (
     <>
@@ -303,6 +358,22 @@ export function ValidationSection({ state, role, patch, notify }: Pick<Ctx, 'sta
             ]}
           />
           <Chart vals={ev.actual} other={ev.prediction} />
+          <PredictionNarrative
+            mode="validation"
+            space={space}
+            role={role}
+            state={state}
+            busy={busy}
+            setBusy={setBusy}
+            notify={notify}
+            label="Groq: summarize holdout metrics"
+            onSaved={(answer) => {
+              patch((s) => {
+                logAudit(s, role, 'Validation narrative', s.evaluations[0]?.id ?? '')
+              })
+              notify(answer.slice(0, 120) + (answer.length > 120 ? '…' : ''))
+            }}
+          />
         </Card>
       ) : null}
     </>

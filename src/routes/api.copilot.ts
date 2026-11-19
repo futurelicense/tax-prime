@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { requireAuthMiddleware } from '~/server/middleware/requireAuth'
 import { groqComplete } from '~/server/groq'
 import { serverEnv } from '~/server/env'
+import { systemPromptForMode } from '~/server/groq-prompts'
+import { defaultQuestionForMode, type GroqAlignMode } from '~/lib/prediction-context'
 
 export const Route = createFileRoute('/api/copilot')({
   server: {
@@ -12,14 +14,15 @@ export const Route = createFileRoute('/api/copilot')({
           const body = (await request.json()) as {
             question?: string
             context?: unknown
+            mode?: GroqAlignMode
           }
-          const question = body.question?.trim()
+          const mode: GroqAlignMode = body.mode ?? 'general'
+          const question = (body.question?.trim() || defaultQuestionForMode(mode)).trim()
           if (!question) {
             return Response.json({ error: 'question required' }, { status: 400 })
           }
-          const sys =
-            'You are TAX-PRIME research copilot. Answer only from WORKSPACE_CONTEXT JSON. Cite source snapshot IDs when mentioning data. If context lacks information, say so. Never claim operational tax authority. Keep answers concise.'
-          const user = `WORKSPACE_CONTEXT:\n${JSON.stringify(body.context ?? {}, null, 0)}\n\nQUESTION:\n${question}`
+          const sys = systemPromptForMode(mode)
+          const user = `CONTEXT:\n${JSON.stringify(body.context ?? {}, null, 0)}\n\nQUESTION:\n${question}`
           if (!serverEnv().groqKey) {
             return Response.json({
               answer:

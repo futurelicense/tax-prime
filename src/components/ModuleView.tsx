@@ -21,6 +21,11 @@ import {
   ScenarioSection,
   ValidationSection,
 } from '~/components/module-sections'
+import {
+  PredictionNarrative,
+  saveForecastNarrative,
+} from '~/components/PredictionNarrative'
+import { buildPredictionAlignedContext } from '~/lib/prediction-context'
 
 const SOURCES = [
   ['Treasury Revenue Collections', 'treasury-rcm', true],
@@ -151,17 +156,9 @@ export function ModuleView({ module }: { module: ModuleSlug }) {
       const res = await apiFetch('/api/copilot', {
         method: 'POST',
         body: JSON.stringify({
+          mode: 'general',
           question: question.trim(),
-          context: {
-            mode: space,
-            observations: state.obs.length,
-            latestRun: latest,
-            latestScenario: sc,
-            optimization: opt,
-            model: state.model,
-            sources: state.source.slice(0, 8),
-            macro: state.macro,
-          },
+          context: buildPredictionAlignedContext(state, space),
         }),
       })
       const data = (await res.json()) as {
@@ -382,6 +379,24 @@ export function ModuleView({ module }: { module: ModuleSlug }) {
             <p className="text-xs text-[#64778a] mt-2">
               Horizon total: {money(latest.values.reduce((a, b) => a + b, 0))}
             </p>
+            {latest.narrative ? (
+              <div className="mt-3 border border-[#e0e6ed] rounded-lg p-3 text-sm whitespace-pre-wrap">
+                <p className="text-xs text-[#64778a] mb-1">
+                  Model-aligned narrative · {latest.narrativeAt}
+                </p>
+                {latest.narrative}
+              </div>
+            ) : null}
+            <PredictionNarrative
+              mode="forecast"
+              space={space}
+              role={role}
+              state={state}
+              busy={busy}
+              setBusy={setBusy}
+              notify={notify}
+              onSaved={(answer) => saveForecastNarrative(patch, role, answer)}
+            />
           </Card>
         ) : null}
         <Card title="Run history">
@@ -391,10 +406,33 @@ export function ModuleView({ module }: { module: ModuleSlug }) {
     )
   }
 
-  if (module === 'model') body = <ModelSection state={state} role={role} patch={patch} notify={notify} />
+  if (module === 'model') {
+    body = (
+      <ModelSection
+        space={space}
+        state={state}
+        role={role}
+        patch={patch}
+        notify={notify}
+        busy={busy}
+        setBusy={setBusy}
+      />
+    )
+  }
 
   if (module === 'scenario') {
-    body = <ScenarioSection state={state} role={role} patch={patch} latest={latest} notify={notify} />
+    body = (
+      <ScenarioSection
+        space={space}
+        state={state}
+        role={role}
+        patch={patch}
+        latest={latest}
+        notify={notify}
+        busy={busy}
+        setBusy={setBusy}
+      />
+    )
   }
 
   if (module === 'governance') {
@@ -406,14 +444,25 @@ export function ModuleView({ module }: { module: ModuleSlug }) {
   }
 
   if (module === 'validation') {
-    body = <ValidationSection state={state} role={role} patch={patch} notify={notify} />
+    body = (
+      <ValidationSection
+        space={space}
+        state={state}
+        role={role}
+        patch={patch}
+        notify={notify}
+        busy={busy}
+        setBusy={setBusy}
+      />
+    )
   }
 
   if (module === 'copilot') {
     body = (
       <Card title="Groq AI Copilot">
         <Banner>
-          Server-side Groq with workspace JSON context. Keys from <code>GROQ_API_KEY</code> only.
+          Free-form Q&amp;A still uses the same prediction-aligned CONTEXT as Predict/Scenario/Validation
+          (authoritative_forecast numbers only). Set <code>GROQ_API_KEY</code> in <code>.env</code>.
         </Banner>
         {state.chat.map((x, i) => (
           <div key={i} className="border border-[#e0e6ed] rounded-lg p-3 my-2">

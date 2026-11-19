@@ -39,8 +39,8 @@ GOVERNANCE (submit) → REVIEWER approves → REPORTS
 
 ### Learning & delivery
 
-8. **Performance Validation** — 12-month holdout, compare methods.
-9. **Groq AI Copilot** — optional narrative; **not** a source of truth.
+8. **Performance Validation** — 12-month holdout, compare methods; optional Groq holdout summary (metrics only).
+9. **Groq** — on **Predict**, **Scenario**, **Validation**, and **Model**, “model-aligned narrative” uses the same `authoritative_forecast` / holdout numbers the app computed (Groq explains; it does not re-forecast). **Copilot** is free-form Q&A with the same CONTEXT. **Not** a source of truth.
 10. **Governance and Audit** — analyst submits; reviewer approves.
 11. **Reports & Publications** — brief from approved decision.
 

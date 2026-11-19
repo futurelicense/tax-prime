@@ -35,6 +35,8 @@ export type ForecastRun = {
   high: number[]
   source: string[]
   version: number
+  narrative?: string
+  narrativeAt?: string
 }
 export type Scenario = {
   id: string
@@ -44,6 +46,8 @@ export type Scenario = {
   growth: number
   values: number[]
   date: string
+  narrative?: string
+  narrativeAt?: string
 }
 export type Decision = {
   id: string
