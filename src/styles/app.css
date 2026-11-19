@@ -1,0 +1,44 @@
+@import 'tailwindcss' source('../');
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: #e0e6ed;
+  }
+
+  html,
+  body {
+    @apply bg-[#f5f7fa] text-[#182a3b] text-sm;
+  }
+}
+
+.tp-marketing {
+  background: linear-gradient(165deg, #0a1a28 0%, #122d43 45%, #0f2436 100%);
+  color: #e8f3f7;
+}
+
+.tp-hero {
+  background: radial-gradient(ellipse 80% 60% at 70% 0%, rgba(98, 212, 199, 0.12), transparent 55%);
+}
+
+.tp-hero-glow {
+  position: absolute;
+  inset: -20% 20% auto -10%;
+  height: 420px;
+  background: radial-gradient(circle, rgba(8, 127, 128, 0.35), transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.tp-light-band {
+  background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
+}
+
+.tp-login {
+  background: #0f2436;
+}
+
+.tp-login-hero {
+  background: linear-gradient(145deg, #122d43 0%, #0a1a28 100%);
+}

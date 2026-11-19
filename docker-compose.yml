@@ -1,0 +1,12 @@
+services:
+  tax-prime:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - taxprime_data:/app/.data
+
+volumes:
+  taxprime_data:
